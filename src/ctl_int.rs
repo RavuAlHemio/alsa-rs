@@ -514,6 +514,41 @@ impl ElemList {
         from_const("snd_ctl_elem_list_get_name", unsafe { alsa::snd_ctl_elem_list_get_name(self.0, index) })
     }
     pub fn get_index(&self, index: u32) -> Result<u32> { self.ensure_valid_index(index)?; Ok(unsafe { alsa::snd_ctl_elem_list_get_index(self.0, index) }) }
+
+    pub fn iter(&self) -> ElemListIter<'_> { ElemListIter::new(self) }
+}
+
+pub struct ElemListIter<'a> {
+    list: &'a ElemList,
+    next_index: u32,
+}
+
+impl<'a> ElemListIter<'a> {
+    pub fn new(list: &'a ElemList) -> ElemListIter<'a> {
+        ElemListIter {
+            list,
+            next_index: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for ElemListIter<'a> {
+    type Item = ElemId;
+
+    fn next(&mut self) -> Option<ElemId> {
+        if self.next_index < self.list.get_used() {
+            let id = self.list.get_id(self.next_index).ok()?;
+            self.next_index += 1;
+            Some(id)
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let length: usize = self.list.get_used().try_into().unwrap();
+        (length, Some(length))
+    }
 }
 
 /// [snd_ctl_event_t](http://www.alsa-project.org/alsa-doc/alsa-lib/group___control.html) wrapper

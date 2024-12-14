@@ -14,9 +14,9 @@ fn list_controls_for_card(card: &Card) -> Result<(), Error>{
 
     // Query the elements
     let elems = ctl.elem_list()?;
-    for list_index in 0..elems.get_used() {
-        let numeric_id = elems.get_numid(list_index)?;
-        let name = elems.get_name(list_index)?;
+    for elem in elems.iter() {
+        let numeric_id = elem.get_numid();
+        let name = elem.get_name()?;
         println!("  {}: {}", numeric_id, name);
     }
 
